@@ -8,9 +8,14 @@ load_dotenv()
 
 class GuardAgent():
     def __init__(self):
+        token = os.getenv("RUNPOD_TOKEN")
+        base_url = os.getenv("RUNPOD_CHATBOT_URL")
+        if not token or not base_url:
+            raise ValueError("Missing required environment variables: RUNPOD_TOKEN or RUNPOD_CHATBOT_URL")
+            
         self.client = OpenAI(
-            api_key=os.getenv("RUNPOD_TOKEN"),
-            base_url=os.getenv("RUNPOD_CHATBOT_URL"),
+            api_key=token,
+            base_url=base_url
         )
         self.model_name = os.getenv("MODEL_NAME")
     
@@ -40,7 +45,7 @@ class GuardAgent():
         
         input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
-        chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
+        chatbot_output = get_chatbot_response(self.client,self.model_name,input_messages)
         output = self.postprocess(chatbot_output)
         
         return output
