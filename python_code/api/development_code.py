@@ -8,15 +8,11 @@ from agents import (GuardAgent,
 import os
 
 def main():
-    # Get the current directory (where development_code.py is)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
     guard_agent = GuardAgent()
     classification_agent = ClassificationAgent()
-    recommendation_agent = RecommendationAgent(
-        os.path.join(current_dir, 'recommendation_objects', 'apriori_recommendations.json'),
-        os.path.join(current_dir, 'recommendation_objects', 'popularity_recommendation.csv')
-    )
+    recommendation_agent = RecommendationAgent('recommendation_objects/apriori_recommendations.json',
+                                                    'recommendation_objects/popularity_recommendation.csv'
+                                                    )
     agent_dict: dict[str, AgentProtocol] = {
         "details_agent": DetailsAgent(),
         "order_taking_agent": OrderTakingAgent(recommendation_agent),
@@ -51,7 +47,9 @@ def main():
         agent = agent_dict[chosen_agent]
         response = agent.get_response(messages)
         
-        messages.append(response)        
+        messages.append(response)
+
+        
         
 
 if __name__ == "__main__":
