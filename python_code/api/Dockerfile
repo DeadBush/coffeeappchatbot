@@ -16,5 +16,4 @@ COPY main.py main.py
 # Testing Dockerfile # TO REMOVE AFTER TESTING
 # COPY test_input.json test_input.json
 
-
 ENTRYPOINT [ "python", "main.py"]
