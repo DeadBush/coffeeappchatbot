@@ -14,7 +14,7 @@ def get_chatbot_response(client,model_name,messages,temperature=0):
     return response
 
 def get_embedding(embedding_client,model_name,text_input):
-    output = embedding_client.embeddings.create(input = text_input,model=model_name)
+    output = embedding_client.embedding.create(input = text_input,model=model_name)
     
     embedings = []
     for embedding_object in output.data:
