@@ -15,12 +15,12 @@ const OrdersHeader = () => {
         <Text
         className=" mx-7 mt-3 text-[#242424] text-base font-[Sora-SemiBold] mb-2"
         >
-        Jl. Kpg Sutoyo
+        HCM City
         </Text>
         <Text
         className=" mx-7 text-[#A2A2A2] text-xs font-[Sora-SemiBold] mb-3"
         >
-        Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai.
+        HCM City, Viet Nam
         </Text>
 
         <View className="mx-12 border-b border-gray-400 my-4 " />

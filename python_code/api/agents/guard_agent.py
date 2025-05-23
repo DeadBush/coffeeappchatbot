@@ -55,4 +55,4 @@ class GuardAgent():
                        "guard_decision": output['decision']
                       }
         }
-        return dict_output    
+        return dict_output
