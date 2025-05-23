@@ -25,34 +25,54 @@ const ChatRoom = () => {
     let message = textRef.current.trim();
     if (!message) return;
     try {
+        // Create a properly formatted message object
+        const userMessage: MessageInterface = {
+            role: 'user',
+            content: message
+        };
 
         // Add the user message to the list of messages
-        let InputMessages = [...messages, { content:message, role: 'user' }];
-
-        setMessages(InputMessages);
-        textRef.current = ''
-        if(inputRef) inputRef?.current?.clear();
-        setIsTyping(true)
-        let resposnseMessage = await callChatBotAPI(InputMessages);
-        setIsTyping(false)
-        setMessages(prevMessages => [...prevMessages, resposnseMessage]);
+        const updatedMessages = [...messages, userMessage];
+        setMessages(updatedMessages);
         
-        if (resposnseMessage) {
-            if (resposnseMessage.memory ) {
-                if (resposnseMessage.memory.order) {
-                    emptyCart()
-                    resposnseMessage.memory.order.forEach((item: any) => {
-                    addToCart(item.item, item.quantity)
-                    });
-                }
-            }
+        // Clear input
+        textRef.current = '';
+        if(inputRef.current) {
+            inputRef.current.clear();
         }
-        
 
-    } catch(err:any ) {
-        Alert.alert('Message', err.message)
+        // Show typing indicator
+        setIsTyping(true);
+
+        try {
+            // Call API with updated messages
+            const responseMessage = await callChatBotAPI(updatedMessages);
+            
+            // Update messages with response
+            setMessages(prevMessages => [...prevMessages, responseMessage]);
+
+            // Handle order if present in response
+            if (responseMessage?.memory?.order) {
+                emptyCart();
+                responseMessage.memory.order.forEach((item: any) => {
+                    addToCart(item.item, item.quantity);
+                });
+            }
+        } catch (error: any) {
+            console.error('API Error:', error);
+            // Add error message to chat
+            setMessages(prevMessages => [...prevMessages, {
+                role: 'assistant',
+                content: 'Sorry, I encountered an error. Please try again.'
+            }]);
+        } finally {
+            setIsTyping(false);
+        }
+
+    } catch(err:any) {
+        console.error('Error in handleSendMessage:', err);
+        Alert.alert('Error', 'Failed to send message. Please try again.');
     }
-
   }
 
   return (
