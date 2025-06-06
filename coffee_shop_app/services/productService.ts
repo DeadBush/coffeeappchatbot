@@ -1,23 +1,17 @@
-import { fireBaseDB } from '../config/firebaseConfig';
+import api from './api';
 import { Product } from '../types/types';
-import { ref, get } from 'firebase/database';
-
-const productsRef = ref(fireBaseDB, 'products');
 
 const fetchProducts = async (): Promise<Product[]> => {
-  const snapshot = await get(productsRef);
-  const data = snapshot.val();
+  const response = await api.get('/products');
   
-  const products: Product[] = [];
-  if (data) {
-    for (const key in data) {
-      if (data.hasOwnProperty(key)) {
-        products.push({ ...data[key] });
-      }
-    }
-  }
-  
-  return products;
+  return response.data.data.map((item: any) => ({
+    ...item,
+    
+  }));
 };
 
-export { fetchProducts };
+const postOrder = async (orderItems: { productId: string; quantity: number }[]) => {
+  return api.post('/orders', { items: orderItems });
+};
+
+export { fetchProducts, postOrder };

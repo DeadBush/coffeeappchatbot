@@ -6,7 +6,7 @@ import PageHeader from '@/components/PageHeader'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Product } from '@/types/types';
-import { fetchProducts } from '@/services/productService';
+import { fetchProducts, postOrder } from '@/services/productService';
 import ProductList from '@/components/CartProductList';
 import { useCart } from '@/components/CartContext';
 import Toast from 'react-native-root-toast';
@@ -52,13 +52,33 @@ const Order = () => {
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>{error}</Text>;
 
-  const orderNow = () => {
-    emptyCart();
-    Toast.show('Order placed successfully!', {
-      duration: Toast.durations.SHORT,
-      position: Toast.positions.BOTTOM,
-    });
-    router.push('/thankyou')
+  const orderNow = async () => {
+    // Prepare order items from cart
+    const orderItems = Object.entries(cartItems)
+      .filter(([_, quantity]) => quantity > 0)
+      .map(([name, quantity]) => {
+        const product = products.find((p) => p.name === name);
+        return product ? { productId: product.id, quantity } : null;
+      })
+      .filter((item): item is { productId: string; quantity: number } => item !== null);
+
+    if (orderItems.length === 0) {
+      Toast.show('No items in cart!', { duration: Toast.durations.SHORT, position: Toast.positions.BOTTOM });
+      return;
+    }
+
+    try {
+      await postOrder(orderItems);
+      emptyCart();
+      Toast.show('Order placed successfully!', {
+        duration: Toast.durations.SHORT,
+        position: Toast.positions.BOTTOM,
+      });
+      router.push('/thankyou');
+    } catch (error) {
+      Toast.show('Order failed!', { duration: Toast.durations.SHORT, position: Toast.positions.BOTTOM });
+      console.error(error);
+    }
   };
 
   return (
