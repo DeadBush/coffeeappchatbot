@@ -33,9 +33,7 @@ To deploy the chatbot API on RunPod:
 
 1. Push Docker Image:
     Push the Dockerfile to your DockerHub account, or you can use the pre-built image:
-    ```
-    abdullah57/chatbot
-    ```
+    
 2. Create RunPod Endpoint:
 
 Go to the RunPod serverless section and create a new endpoint.

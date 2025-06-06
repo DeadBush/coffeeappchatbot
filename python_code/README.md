@@ -29,7 +29,7 @@ A Jupyter notebook that trains the market basket analysis recommendation model, 
 
 ## 🚀 Getting Started
 
-For Detailed instructions follow my Youtube tutorial
+
 To set up the project and run the notebooks, follow these steps:
 
 1. **Install Requirements**:  
