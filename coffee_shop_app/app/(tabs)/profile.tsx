@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { fireBaseStorage } from '@/config/firebaseConfig';
 import * as FileSystem from 'expo-file-system';
+import { format } from 'date-fns';
 
 const ProfileScreen = () => {
   const [user, setUser] = useState<any>(null);
@@ -17,28 +18,37 @@ const ProfileScreen = () => {
   const [editName, setEditName] = useState('');
   const [editAvatar, setEditAvatar] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showAllOrders, setShowAllOrders] = useState(false);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersTotal, setOrdersTotal] = useState(0);
+  const ORDERS_PAGE_SIZE = 5;
   const router = useRouter();
 
+  // Fetch orders with pagination and sort by updatedAt desc
+  const fetchOrders = async (page = 0, pageSize = ORDERS_PAGE_SIZE, userId: string) => {
+    try {
+      const response = await api.get(`/orders/${userId}?page=${page}&size=${pageSize}&sort=createdAt&order=desc`);
+      setOrders(response.data.data?.result || []);
+      setOrdersTotal(response.data.data?.meta?.total || 0);
+    } catch (error) {
+      setOrders([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndOrders = async () => {
       try {
         const userData = await authService.getCurrentUser();
-        setUser(userData.data || userData);
+        const loadedUser = userData.data || userData;
+        setUser(loadedUser);
+        // Only fetch orders after user is loaded
+        await fetchOrders(0, ORDERS_PAGE_SIZE, loadedUser.id);
       } catch (error) {
         setUser(null);
       }
+      setLoading(false);
     };
-    const fetchOrders = async () => {
-      try {
-        const response = await api.get('/orders');
-        setOrders(response.data.data || response.data);
-      } catch (error) {
-        setOrders([]);
-      }
-    };
-    fetchUser();
-    fetchOrders();
-    setLoading(false);
+    fetchUserAndOrders();
   }, []);
 
   const handleLogout = async () => {
@@ -109,6 +119,11 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleShowAllOrders = () => {
+    setShowAllOrders(true);
+    if (user?.id) fetchOrders(0, 1000, user.id);
+  };
+
   if (loading) return <Text>Loading...</Text>;
 
   const avatarUrl = user?.avatar || user?.avatarUrl || null;
@@ -143,17 +158,32 @@ const ProfileScreen = () => {
 
       <Text style={styles.title}>My Orders</Text>
       <FlatList
-        data={orders}
+        data={showAllOrders ? orders : orders.slice(0, ORDERS_PAGE_SIZE)}
         keyExtractor={(item, idx) => item.id?.toString() || idx.toString()}
         renderItem={({ item }) => (
-          <View style={styles.orderItem}>
-            <Text style={styles.orderText}>Order #{item.id}</Text>
-            <Text style={styles.orderText}>Total: ${item.total || 'N/A'}</Text>
-            <Text style={styles.orderText}>Status: {item.status || 'N/A'}</Text>
+          <View style={styles.orderItemRow}>
+            {item.orderDetails && item.orderDetails[0]?.product?.imageUrl ? (
+              <Image source={{ uri: item.orderDetails[0].product.imageUrl }} style={styles.orderProductImage} />
+            ) : (
+              <View style={styles.orderProductImagePlaceholder} />
+            )}
+            <View style={styles.orderDetailCol}>
+              <Text style={styles.orderText}>Order #{item.id}</Text>
+              <Text style={styles.orderText}>Total: ${item.totalPrice || 'N/A'}</Text>
+              <Text style={styles.orderText}>Status: {item.orderStatus || 'N/A'}</Text>
+              <Text style={styles.orderText}>
+                {item.createdAt ? `Created: ${format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}` : 'Created: N/A'}
+              </Text>
+            </View>
           </View>
         )}
         ListEmptyComponent={<Text style={styles.error}>No orders found.</Text>}
       />
+      {!showAllOrders && orders.length > ORDERS_PAGE_SIZE && (
+        <TouchableOpacity style={styles.showAllButton} onPress={handleShowAllOrders}>
+          <Text style={styles.showAllButtonText}>Show All Orders</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
@@ -268,11 +298,31 @@ const styles = StyleSheet.create({
     color: '#2D3436',
     fontWeight: '600',
   },
-  orderItem: {
+  orderItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F5F6FA',
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
+  },
+  orderProductImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 14,
+    backgroundColor: '#E0E0E0',
+  },
+  orderProductImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 14,
+    backgroundColor: '#E0E0E0',
+  },
+  orderDetailCol: {
+    flex: 1,
+    justifyContent: 'center',
   },
   orderText: {
     fontSize: 15,
@@ -367,6 +417,19 @@ const styles = StyleSheet.create({
     color: '#636E72',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  showAllButton: {
+    marginTop: 10,
+    alignSelf: 'center',
+    backgroundColor: '#C67C4E',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  showAllButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 

@@ -6,12 +6,12 @@ const fetchProducts = async (): Promise<Product[]> => {
   
   return response.data.data.map((item: any) => ({
     ...item,
-    
+    image_url: item.image_url,
   }));
 };
 
-const postOrder = async (orderItems: { productId: string; quantity: number }[]) => {
-  return api.post('/orders', { items: orderItems });
+const postOrder = async (order: any) => {
+  return api.post('/orders', order);
 };
 
 export { fetchProducts, postOrder };
