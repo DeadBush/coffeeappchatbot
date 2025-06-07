@@ -45,6 +45,17 @@ const TabsLayout = () => {
             )
           }}
         />
+
+    <Tabs.Screen 
+          name='profile'
+          options={{
+            headerShown: true,
+            title: 'Profile',
+            tabBarIcon: ({color}: TabBarIconProps) => (
+              <Entypo name="user" size={24} color={color} />
+            )
+          }}
+        />
       </Tabs>
     </>
   )
