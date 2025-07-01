@@ -45,6 +45,28 @@ const TabsLayout = () => {
             )
           }}
         />
+
+    <Tabs.Screen
+      name='profile'
+      options={{
+        headerShown: true,
+        title: 'Profile',
+        tabBarIcon: ({color}: TabBarIconProps) => (
+          <FontAwesome6 name="user" size={24} color={color} />
+        )
+      }}
+    />
+
+    <Tabs.Screen
+      name='favourite'
+      options={{
+        headerShown: true,
+        title: 'Favourites',
+        tabBarIcon: ({color}: TabBarIconProps) => (
+          <FontAwesome6 name="heart" size={24} color={color} />
+        )
+      }}
+    />
       </Tabs>
     </>
   )

@@ -11,6 +11,8 @@ import ProductList from '@/components/CartProductList';
 import { useCart } from '@/components/CartContext';
 import Toast from 'react-native-root-toast';
 import { router } from 'expo-router';
+import { saveOrder, OrderItem } from '@/services/orderService';
+import { getAuth } from 'firebase/auth';
 
 const Order = () => {
 
@@ -52,13 +54,36 @@ const Order = () => {
   if (loading) return <Text>Loading...</Text>;
   if (error) return <Text>{error}</Text>;
 
-  const orderNow = () => {
-    emptyCart();
-    Toast.show('Order placed successfully!', {
-      duration: Toast.durations.SHORT,
-      position: Toast.positions.BOTTOM,
-    });
-    router.push('/thankyou')
+  const orderNow = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        Toast.show('You must be logged in to place an order.', { duration: Toast.durations.SHORT });
+        router.replace('/login');
+        return;
+      }
+      const items: OrderItem[] = Object.entries(cartItems).map(([name, quantity]) => {
+        const product = products.find(p => p.name === name);
+        return product ? { name, quantity, price: product.price } : null;
+      }).filter(Boolean) as OrderItem[];
+      const order = {
+        userId: user.uid,
+        email: user.email || '',
+        items,
+        total: totalPrice === 0 ? 0 : totalPrice + 1,
+        timestamp: Date.now(),
+      };
+      await saveOrder(order);
+      emptyCart();
+      Toast.show('Order placed successfully!', {
+        duration: Toast.durations.SHORT,
+        position: Toast.positions.BOTTOM,
+      });
+      router.push('/thankyou');
+    } catch (error: any) {
+      Toast.show('Failed to place order: ' + error.message, { duration: Toast.durations.SHORT });
+    }
   };
 
   return (

@@ -30,7 +30,7 @@ export default function Index() {
             </Text>
               <TouchableOpacity 
                 className="bg-[#C57C3E] mt-10 p-3 rounded-lg items-center" 
-                onPress = {() => router.push("/(tabs)/home")}
+                onPress = {() => router.push("/login")}
               >
                 <Text className="text-xl color-white font-[Sora-SemiBold]">Get Started</Text> 
               </TouchableOpacity> 

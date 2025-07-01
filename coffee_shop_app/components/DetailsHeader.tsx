@@ -1,24 +1,35 @@
-import { Text, View,Image } from 'react-native'
+import { Text, View,Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Octicons from '@expo/vector-icons/Octicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 interface DetailsHeaderInterface {
     image_url: string;
     name: string;
     type: string;
     rating: number;
+    isFavorite?: boolean;
+    onToggleFavorite?: () => void;
 }
 
-const DetailsHeader = ({image_url,name,type,rating}:DetailsHeaderInterface) => {
+const DetailsHeader = ({image_url,name,type,rating,isFavorite,onToggleFavorite}:DetailsHeaderInterface) => {
   return (
     <>
-        <Image 
-            source = {{ uri: image_url}}
-            className='w-full  h-48 rounded-2xl mt-2'
+        <View style={{ position: 'relative', width: '100%' }}>
+            <Image 
+                source = {{ uri: image_url}}
+                className='w-full  h-48 rounded-2xl mt-2'
             />
+            <TouchableOpacity
+                style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}
+                onPress={onToggleFavorite}
+            >
+                <FontAwesome5 name="heart" size={28} color={isFavorite ? '#ED5151' : '#A2A2A2'} solid />
+            </TouchableOpacity>
+        </View>
 
         <View>
             <Text

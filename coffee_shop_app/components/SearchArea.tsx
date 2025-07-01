@@ -16,7 +16,6 @@ const SearchArea = () => {
             HCM City, Viet Nam
         </Text>
 
-        
         <View className='w-full mt-5 flex-row justify-between'>
             <View 
             className="flex  w-[80%] h-14 px-4 bg-[#2A2A2A] rounded-2xl focus:border-secondary justify-center"

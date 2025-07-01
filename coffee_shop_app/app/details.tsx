@@ -1,5 +1,5 @@
 import { Text, View,TouchableOpacity, ScrollView, StatusBar  } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router'
 import { useLocalSearchParams } from "expo-router";
@@ -9,12 +9,36 @@ import Toast from 'react-native-root-toast';
 import DescriptionSection from '@/components/DescriptionSection';
 import SizesSection from '@/components/SizesSection';
 import DetailsHeader from '@/components/DetailsHeader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DetailsPage = () => {
   const { addToCart } = useCart();
 
-  const { name, image_url, type, description, price, rating } = useLocalSearchParams() as { name: string, image_url: string, type: string, description: string, price: string, rating: string };
+  const { name, image_url, type, description, price, rating, id } = useLocalSearchParams() as { name: string, image_url: string, type: string, description: string, price: string, rating: string, id?: string };
   
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    const checkFavorite = async () => {
+      const favs = await AsyncStorage.getItem('favourites');
+      const favArr = favs ? JSON.parse(favs) : [];
+      setIsFavorite(favArr.some((item: any) => item.id === id || item.name === name));
+    };
+    checkFavorite();
+  }, [id, name]);
+
+  const handleToggleFavorite = async () => {
+    const favs = await AsyncStorage.getItem('favourites');
+    let favArr = favs ? JSON.parse(favs) : [];
+    if (isFavorite) {
+      favArr = favArr.filter((item: any) => !(item.id === id || item.name === name));
+    } else {
+      favArr.push({ id: id || name, name, image_url, type, description, price, rating });
+    }
+    await AsyncStorage.setItem('favourites', JSON.stringify(favArr));
+    setIsFavorite(!isFavorite);
+  };
+
   const buyNow = () => {
     addToCart(name, 1);
     Toast.show(`${name} added to cart`, {
@@ -29,12 +53,12 @@ const DetailsPage = () => {
     >
       <StatusBar backgroundColor="white" />
 
-      <PageHeader title="Detail" showHeaderRight={true} bgColor='#F9F9F9' />
+      <PageHeader title="Detail" showHeaderRight={false} bgColor='#F9F9F9' />
       
       <View className='h-full flex-col justify-between'>
         <ScrollView>
             <View className='mx-5 items-center'>
-              <DetailsHeader image_url={image_url} name={name} type={type} rating={Number(rating)} />
+              <DetailsHeader image_url={image_url} name={name} type={type} rating={Number(rating)} isFavorite={isFavorite} onToggleFavorite={handleToggleFavorite} />
               <DescriptionSection description={description} />
               <SizesSection />
             </View>
