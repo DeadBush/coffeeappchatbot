@@ -6,11 +6,13 @@ import { app } from '../../config/firebaseConfig';
 import { router } from 'expo-router';
 import { getDatabase, ref, onValue, DataSnapshot } from 'firebase/database';
 import { cancelOrder } from '@/services/orderService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderKeys, setOrderKeys] = useState<string[]>([]);
+  const [profile, setProfile] = useState<{ name?: string; address?: string; phone?: string; email?: string }>({});
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -36,6 +38,10 @@ const ProfilePage = () => {
         : [];
       setOrders(userOrders.reverse());
     });
+    // Load profile info from AsyncStorage
+    AsyncStorage.getItem(`userProfile-${user.uid}`).then(profileStr => {
+      if (profileStr) setProfile(JSON.parse(profileStr));
+    });
     return () => unsubscribe();
   }, [user]);
 
@@ -51,11 +57,14 @@ const ProfilePage = () => {
 
   return (
     <GestureHandlerRootView className="flex-1 bg-[#F9F9F9]">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-        <Text className="text-3xl font-[Sora-SemiBold] mb-8 text-app_orange_color">Profile</Text>
-        <View className="w-full bg-white rounded-2xl p-6 mb-8 border border-[#EDEDED] items-center">
-          <Text className="text-lg font-[Sora-Regular] text-[#242424] mb-2">Email:</Text>
-          <Text className="text-lg font-[Sora-SemiBold] text-app_orange_color">{user?.email}</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingHorizontal: 32, paddingTop: 24 }}>
+        <Text className="text-3xl font-[Sora-SemiBold] mb-8 text-app_orange_color self-start">Profile</Text>
+        <View className="w-full bg-white rounded-2xl p-6 mb-8 border border-[#EDEDED] items-start">
+          {profile.name && <Text className="text-lg font-[Sora-Regular] text-[#242424] mb-2 text-left">Name: {profile.name}</Text>}
+          {profile.address && <Text className="text-lg font-[Sora-Regular] text-[#242424] mb-2 text-left">Address: {profile.address}</Text>}
+          {profile.phone && <Text className="text-lg font-[Sora-Regular] text-[#242424] mb-2 text-left">Phone: {profile.phone}</Text>}
+          <Text className="text-lg font-[Sora-Regular] text-[#242424] mb-2 text-left">Email:</Text>
+          <Text className="text-lg font-[Sora-SemiBold] text-app_orange_color text-left">{user?.email}</Text>
         </View>
         <TouchableOpacity
           className="bg-app_orange_color w-full rounded-2xl items-center justify-center py-4"
@@ -75,13 +84,16 @@ const ProfilePage = () => {
                 <Text className="text-base font-[Sora-SemiBold] text-app_orange_color mb-1">
                   {new Date(order.timestamp).toLocaleString()}
                 </Text>
+                {order.name && <Text className="text-base font-[Sora-Regular] text-[#242424] mb-1">Name: {order.name}</Text>}
+                {order.address && <Text className="text-base font-[Sora-Regular] text-[#242424] mb-1">Address: {order.address}</Text>}
+                {order.phone && <Text className="text-base font-[Sora-Regular] text-[#242424] mb-1">Phone: {order.phone}</Text>}
                 <Text className="text-base font-[Sora-Regular] text-[#242424] mb-1">
                   Total: ${order.total}
                 </Text>
                 <Text className="text-base font-[Sora-Regular] text-[#242424] mb-1">Items:</Text>
                 {order.items.map((item: any, i: number) => (
                   <Text key={i} className="text-sm text-[#242424] ml-2">
-                    - {item.name} x{item.quantity} (${item.price} each)
+                    - {item.name} ({item.size}) x{item.quantity} (${item.price} each)
                   </Text>
                 ))}
                 <TouchableOpacity

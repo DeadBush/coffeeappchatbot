@@ -17,6 +17,7 @@ const DetailsPage = () => {
   const { name, image_url, type, description, price, rating, id } = useLocalSearchParams() as { name: string, image_url: string, type: string, description: string, price: string, rating: string, id?: string };
   
   const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string>('M');
 
   useEffect(() => {
     const checkFavorite = async () => {
@@ -40,8 +41,8 @@ const DetailsPage = () => {
   };
 
   const buyNow = () => {
-    addToCart(name, 1);
-    Toast.show(`${name} added to cart`, {
+    addToCart(`${name}|${selectedSize}`, 1);
+    Toast.show(`${name} (${selectedSize}) added to cart`, {
       duration: Toast.durations.SHORT,
     });
     router.back();
@@ -60,7 +61,7 @@ const DetailsPage = () => {
             <View className='mx-5 items-center'>
               <DetailsHeader image_url={image_url} name={name} type={type} rating={Number(rating)} isFavorite={isFavorite} onToggleFavorite={handleToggleFavorite} />
               <DescriptionSection description={description} />
-              <SizesSection />
+              <SizesSection selectedSize={selectedSize} onSelectSize={setSelectedSize} />
             </View>
         </ScrollView>
         

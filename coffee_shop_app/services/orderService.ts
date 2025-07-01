@@ -3,6 +3,7 @@ import { app } from '../config/firebaseConfig';
 
 export interface OrderItem {
   name: string;
+  size: string;
   quantity: number;
   price: number;
 }

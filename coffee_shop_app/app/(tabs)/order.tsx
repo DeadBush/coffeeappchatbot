@@ -13,6 +13,7 @@ import Toast from 'react-native-root-toast';
 import { router } from 'expo-router';
 import { saveOrder, OrderItem } from '@/services/orderService';
 import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Order = () => {
 
@@ -23,9 +24,10 @@ const Order = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   const calculateTotal = (products: Product[], quantities: { [key: string]: number }): number => {
-    return products.reduce((total, product) => {
-      const quantity = quantities[product.name] || 0;
-      return total + product.price * quantity;
+    return Object.entries(quantities).reduce((total, [key, quantity]) => {
+      const [productName] = key.split('|');
+      const product = products.find(p => p.name === productName);
+      return product ? total + product.price * quantity : total;
     }, 0);
   };
 
@@ -63,13 +65,26 @@ const Order = () => {
         router.replace('/login');
         return;
       }
-      const items: OrderItem[] = Object.entries(cartItems).map(([name, quantity]) => {
-        const product = products.find(p => p.name === name);
-        return product ? { name, quantity, price: product.price } : null;
+      // Load user profile info
+      let name = '', address = '', phone = '';
+      const profileStr = await AsyncStorage.getItem(`userProfile-${user.uid}`);
+      if (profileStr) {
+        const profile = JSON.parse(profileStr);
+        name = profile.name || '';
+        address = profile.address || '';
+        phone = profile.phone || '';
+      }
+      const items: OrderItem[] = Object.entries(cartItems).map(([key, quantity]) => {
+        const [productName, size = "M"] = key.split('|');
+        const product = products.find(p => p.name === productName);
+        return product ? { name: productName, size, quantity, price: product.price } : null;
       }).filter(Boolean) as OrderItem[];
       const order = {
         userId: user.uid,
         email: user.email || '',
+        name,
+        address,
+        phone,
         items,
         total: totalPrice === 0 ? 0 : totalPrice + 1,
         timestamp: Date.now(),

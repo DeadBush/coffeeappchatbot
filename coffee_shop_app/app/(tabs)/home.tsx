@@ -74,8 +74,8 @@ const Home = () => {
   if (error) return <Text>{error}</Text>;
 
   const addButton = (name:string) => {
-    addToCart(name, 1);
-    Toast.show(`${name} added to cart`, {
+    addToCart(`${name}|M`, 1);
+    Toast.show(`${name} (M) added to cart`, {
       duration: Toast.durations.SHORT,
     });
   };

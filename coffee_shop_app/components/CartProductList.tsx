@@ -3,6 +3,8 @@ import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Product } from '@/types/types';
 import OrdersHeader from './OrdersHeader';
 import OrdersFooter from './OrdersFooter';
+import { useCart } from './CartContext';
+import Feather from '@expo/vector-icons/Feather';
 
 // Props for ProductList
 interface ProductListProps {
@@ -13,41 +15,51 @@ interface ProductListProps {
   }
   
 const ProductList: React.FC<ProductListProps> = ({ products, quantities, setQuantities,totalPrice }) => {
+    const { removeFromCart } = useCart();
+    // Get all cart entries with quantity > 0
+    const cartEntries = Object.entries(quantities).filter(([key, qty]) => qty > 0);
 
-    const filteredProducts = products.filter((product) => (quantities[product.name] || 0) > 0);
+    const renderItem = ({ item }: { item: [string, number] }) => {
+      const [key, qty] = item;
+      const [name, size] = key.split('|');
+      const product = products.find(p => p.name === name);
+      if (!product) return null;
+      return (
+        <View className="flex-row items-center justify-between mx-7 pb-3">
+          <Image
+            source={{ uri: product.image_url }}
+            className="w-16 h-16 rounded-lg"
+          />
+          <View className="flex-1 ml-4 pt-2">
+            <Text className="text-lg font-[Sora-SemiBold] text-[#242424]">{product.name} <Text className="text-sm">({size})</Text></Text>
+            <Text className="font-[Sora-Regular] text-xs text-gray-500">{product.category}</Text>
+          </View>
 
-    const renderItem = ({ item }: { item: Product }) => (
-      <View className="flex-row items-center justify-between mx-7 pb-3">
-        <Image
-          source={{ uri: item.image_url }}
-          className="w-16 h-16 rounded-lg"
-        />
-        <View className="flex-1 ml-4">
-          <Text className="text-lg font-[Sora-SemiBold] text-[#242424] ">{item.name}</Text>
-          <Text className="font-[Sora-Regular] text-xs text-gray-500">{item.category}</Text>
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => setQuantities(key, -1)}>
+              <Text className="text-xl">−</Text>
+            </TouchableOpacity>
+            <Text className="mx-2">{qty}</Text>
+            <TouchableOpacity onPress={() => setQuantities(key, 1)}>
+              <Text className="text-xl">+</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => removeFromCart(key)} className="ml-3">
+              <Feather name="trash-2" size={22} color="#C67C4E" />
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => setQuantities(item.name, -1)}>
-            <Text className="text-xl">−</Text>
-          </TouchableOpacity>
-          <Text className="mx-2">{quantities[item.name] || 0}</Text>
-          <TouchableOpacity onPress={() => setQuantities(item.name, 1)}>
-            <Text className="text-xl">+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+      );
+    };
   
     return (
         <View>
-            {filteredProducts.length > 0 ? (
+            {cartEntries.length > 0 ? (
                 <FlatList
                     ListHeaderComponent={<OrdersHeader />}
                     ListFooterComponent={<OrdersFooter totalPrice={totalPrice} />}
-                    data={filteredProducts}
+                    data={cartEntries}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.name}
+                    keyExtractor={([key]) => key}
                 />
             ) : (
                 

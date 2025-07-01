@@ -1,15 +1,14 @@
 import { Text, View,TouchableOpacity } from 'react-native'
 import React from 'react'
-import { useState } from 'react';
 
-const SizesSection = () => {
-  const [selectedSize, setSelectedSize] = useState<String>('M');
+interface SizesSectionProps {
+  selectedSize: string;
+  onSelectSize: (size: string) => void;
+}
+
+const SizesSection = ({ selectedSize, onSelectSize }: SizesSectionProps) => {
   const sizes = ['S', 'M', 'L'];
 
-  const handleSelect = (size:String) => {
-    setSelectedSize(size);
-  };
-  
   return (
     <View>
         <Text
@@ -21,7 +20,7 @@ const SizesSection = () => {
             {sizes.map((size) => (
             <TouchableOpacity
                 key={size}
-                onPress={() => handleSelect(size)}
+                onPress={() => onSelectSize(size)}
                 className={`px-4 py-2 rounded-2xl w-[30%] items-center ${
                 selectedSize === size ? 'bg-[#fdf5f0] border-2 border-app_orange_color' : 'bg-white'
                 }`}
